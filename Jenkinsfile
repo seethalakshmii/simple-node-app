@@ -40,9 +40,7 @@ pipeline {
 
                     bat """
                     echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest
                     docker push %IMAGE_NAME%:%IMAGE_TAG%
-                    docker push %IMAGE_NAME%:latest
                     """
                 }
             }
@@ -52,12 +50,12 @@ pipeline {
             steps {
                 bat """
                 set KUBECONFIG=C:\\ProgramData\\Jenkins\\.kube\\config
-                
-                kubectl config current-context
+
                 kubectl config use-context minikube
-                
-                kubectl apply -f k8s/deployment.yaml --validate=false
-                kubectl apply -f k8s/service.yaml --validate=false
+
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG%
+
+                kubectl rollout status deployment/simple-node-app
                 """
             }
         }
