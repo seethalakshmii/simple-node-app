@@ -20,16 +20,16 @@ pipeline {
         stage('Dependency Security Check') {
 
             steps {
-                sh 'npm audit || true'
+                bat 'npm audit || exit 0'
             }
         }
 
         stage('Build Docker Image') {
 
             steps {
-                sh '''
-                docker build -t $IMAGE_NAME:$IMAGE_TAG .
-                '''
+                bat """
+                docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
+                """
             }
         }
 
@@ -43,15 +43,15 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
 
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    bat """
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
 
-                    docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+                    docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest
 
-                    docker push $IMAGE_NAME:$IMAGE_TAG
+                    docker push %IMAGE_NAME%:%IMAGE_TAG%
 
-                    docker push $IMAGE_NAME:latest
-                    '''
+                    docker push %IMAGE_NAME%:latest
+                    """
                 }
             }
         }
@@ -59,12 +59,10 @@ pipeline {
         stage('Deploy to Kubernetes') {
 
             steps {
-
-                sh '''
+                bat """
                 kubectl apply -f k8s/deployment.yaml
-
                 kubectl apply -f k8s/service.yaml
-                '''
+                """
             }
         }
     }
