@@ -10,22 +10,19 @@ pipeline {
     stages {
 
         stage('Clone Repository') {
-
             steps {
                 git branch: 'main',
                 url: 'https://github.com/seethalakshmii/simple-node-app.git'
             }
         }
 
-        stage('Dependency Security Check') {
-
+        stage('Dependency Check') {
             steps {
                 bat 'npm audit || exit 0'
             }
         }
 
         stage('Build Docker Image') {
-
             steps {
                 bat """
                 docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
@@ -34,9 +31,7 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-
             steps {
-
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
@@ -45,11 +40,8 @@ pipeline {
 
                     bat """
                     echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-
                     docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest
-
                     docker push %IMAGE_NAME%:%IMAGE_TAG%
-
                     docker push %IMAGE_NAME%:latest
                     """
                 }
@@ -57,26 +49,24 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
-
             steps {
                 bat """
-                kubectl apply -f k8s/deployment.yaml
-                kubectl apply -f k8s/service.yaml
+                kubectl config use-context minikube
+                kubectl cluster-info
+                kubectl apply -f k8s/deployment.yaml --validate=false
+                kubectl apply -f k8s/service.yaml --validate=false
                 """
             }
         }
     }
 
     post {
-
         success {
             echo 'Deployment Successful'
         }
-
         failure {
             echo 'Pipeline Failed'
         }
-
         always {
             cleanWs()
         }
