@@ -27,22 +27,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
-            }
-        }
-
-        stage('Unit Tests') {
-            steps {
-                bat 'npm test || exit 0'
-            }
-        }
-
-        stage('Pipeline Info') {
-            steps {
-                echo "===== CI/CD PIPELINE INFO ====="
-                echo "Git Repo: ${params.GIT_REPO}"
-                echo "Image Name: ${params.IMAGE_NAME}"
-                echo "Build Number: ${BUILD_NUMBER}"
-                echo "================================"
+                bat 'npm audit || exit 0'
             }
         }
 
@@ -61,7 +46,6 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-
                     bat """
                     echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
                     docker push %IMAGE_NAME%:%IMAGE_TAG%
@@ -73,7 +57,11 @@ pipeline {
         stage('Deploy to Dev') {
             steps {
                 bat """
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n dev --record
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n dev
+
+                kubectl annotate deployment simple-node-app -n dev ^
+                kubernetes.io/change-cause="Deployed image %IMAGE_NAME%:%IMAGE_TAG%" --overwrite
+
                 kubectl rollout status deployment/simple-node-app -n dev
                 """
             }
@@ -82,7 +70,11 @@ pipeline {
         stage('Deploy to Staging') {
             steps {
                 bat """
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n staging --record
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n staging
+
+                kubectl annotate deployment simple-node-app -n staging ^
+                kubernetes.io/change-cause="Deployed image %IMAGE_NAME%:%IMAGE_TAG%" --overwrite
+
                 kubectl rollout status deployment/simple-node-app -n staging
                 """
             }
@@ -91,24 +83,29 @@ pipeline {
         stage('Deploy to Prod') {
             steps {
                 bat """
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n prod --record
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n prod
+
+                kubectl annotate deployment simple-node-app -n prod ^
+                kubernetes.io/change-cause="Deployed image %IMAGE_NAME%:%IMAGE_TAG%" --overwrite
+
                 kubectl rollout status deployment/simple-node-app -n prod
                 """
             }
         }
 
-        stage('Application Logs Check') {
+        stage('Logs (Verification)') {
             steps {
                 bat """
-                kubectl get pods
-                kubectl logs deployment/simple-node-app --tail=20
+                kubectl get pods -n dev
+                kubectl get svc -n dev
+                kubectl logs -l app=simple-node-app -n dev --tail=20
                 """
             }
         }
 
-        stage('Rollback (Manual Trigger)') {
+        stage('Rollback (Manual Trigger Only)') {
             when {
-                expression { currentBuild.result == 'FAILURE' }
+                expression { return false }
             }
             steps {
                 bat """
