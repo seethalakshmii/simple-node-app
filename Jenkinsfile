@@ -2,27 +2,42 @@ pipeline {
 
     agent any
 
+    options {
+        timestamps()
+    }
+
     parameters {
-        string(name: 'GIT_REPO', defaultValue: 'https://github.com/seethalakshmii/simple-node-app.git')
-        string(name: 'IMAGE_NAME', defaultValue: 'seetha88/simple-node-app')
+        string(name: 'GIT_REPO', defaultValue: 'https://github.com/seethalakshmii/simple-node-app.git', description: 'Git repository URL')
+        string(name: 'IMAGE_NAME', defaultValue: 'seetha88/simple-node-app', description: 'Docker image name')
     }
 
     environment {
         IMAGE_TAG = "${BUILD_NUMBER}"
+        KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
     }
 
     stages {
 
-        stage('Clone Repository') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                url: "${params.GIT_REPO}"
+                git branch: 'main', url: "${params.GIT_REPO}"
             }
         }
 
-        stage('Dependency Check') {
+        stage('Install & Test') {
             steps {
+                bat 'npm install'
                 bat 'npm audit || exit 0'
+            }
+        }
+
+        stage('Pipeline Info') {
+            steps {
+                echo "===== CI/CD PIPELINE INFO ====="
+                echo "Git Repo: ${params.GIT_REPO}"
+                echo "Image Name: ${params.IMAGE_NAME}"
+                echo "Build Number: ${BUILD_NUMBER}"
+                echo "================================"
             }
         }
 
@@ -53,8 +68,6 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 bat """
-                set KUBECONFIG=C:\\ProgramData\\Jenkins\\.kube\\config
-
                 kubectl config use-context minikube
 
                 kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG%
@@ -75,12 +88,15 @@ pipeline {
     }
 
     post {
+
         success {
-            echo 'Deployment Successful'
+            echo 'CI/CD Pipeline executed successfully'
         }
+
         failure {
-            echo 'Pipeline Failed'
+            echo 'Pipeline failed - check logs'
         }
+
         always {
             cleanWs()
         }
