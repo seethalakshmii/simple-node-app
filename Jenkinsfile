@@ -73,7 +73,7 @@ pipeline {
         stage('Deploy to Dev') {
             steps {
                 bat """
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n dev
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n dev --record
                 kubectl rollout status deployment/simple-node-app -n dev
                 """
             }
@@ -82,7 +82,7 @@ pipeline {
         stage('Deploy to Staging') {
             steps {
                 bat """
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n staging
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n staging --record
                 kubectl rollout status deployment/simple-node-app -n staging
                 """
             }
@@ -91,7 +91,7 @@ pipeline {
         stage('Deploy to Prod') {
             steps {
                 bat """
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n prod
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n prod --record
                 kubectl rollout status deployment/simple-node-app -n prod
                 """
             }
