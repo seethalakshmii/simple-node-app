@@ -20,7 +20,7 @@ spec:
       containers:
       - name: simple-node-app
 
-        image: seetha88/simple-node-app:latest
+        image: seetha88/simple-node-app:{{TAG}}
 
         ports:
         - containerPort: 3000
