@@ -2,8 +2,12 @@ pipeline {
 
     agent any
 
+    parameters {
+        string(name: 'GIT_REPO', defaultValue: 'https://github.com/seethalakshmii/simple-node-app.git')
+        string(name: 'IMAGE_NAME', defaultValue: 'seetha88/simple-node-app')
+    }
+
     environment {
-        IMAGE_NAME = "seetha88/simple-node-app"
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
@@ -12,7 +16,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/seethalakshmii/simple-node-app.git'
+                url: "${params.GIT_REPO}"
             }
         }
 
@@ -56,6 +60,15 @@ pipeline {
                 kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG%
 
                 kubectl rollout status deployment/simple-node-app
+                """
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                bat """
+                kubectl get pods
+                kubectl get svc
                 """
             }
         }
