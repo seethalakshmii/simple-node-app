@@ -65,14 +65,29 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Dev') {
             steps {
                 bat """
-                kubectl config use-context minikube
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n dev
+                kubectl rollout status deployment/simple-node-app -n dev
+                """
+            }
+        }
 
-                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG%
+        stage('Deploy to Staging') {
+            steps {
+                bat """
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n staging
+                kubectl rollout status deployment/simple-node-app -n staging
+                """
+            }
+        }
 
-                kubectl rollout status deployment/simple-node-app
+        stage('Deploy to Prod') {
+            steps {
+                bat """
+                kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n prod
+                kubectl rollout status deployment/simple-node-app -n prod
                 """
             }
         }
