@@ -24,10 +24,15 @@ pipeline {
             }
         }
 
-        stage('Install & Test') {
+        stage('Install Dependencies') {
             steps {
                 bat 'npm install'
-                bat 'npm audit || exit 0'
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                bat 'npm test || exit 0'
             }
         }
 
@@ -92,11 +97,23 @@ pipeline {
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Application Logs Check') {
             steps {
                 bat """
                 kubectl get pods
-                kubectl get svc
+                kubectl logs deployment/simple-node-app --tail=20
+                """
+            }
+        }
+
+        stage('Rollback (Manual Trigger)') {
+            when {
+                expression { currentBuild.result == 'FAILURE' }
+            }
+            steps {
+                bat """
+                kubectl rollout undo deployment/simple-node-app -n dev
+                kubectl rollout status deployment/simple-node-app -n dev
                 """
             }
         }
