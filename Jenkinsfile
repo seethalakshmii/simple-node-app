@@ -51,8 +51,11 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 bat """
+                set KUBECONFIG=C:\\ProgramData\\Jenkins\\.kube\\config
+                
+                kubectl config current-context
                 kubectl config use-context minikube
-                kubectl cluster-info
+                
                 kubectl apply -f k8s/deployment.yaml --validate=false
                 kubectl apply -f k8s/service.yaml --validate=false
                 """
