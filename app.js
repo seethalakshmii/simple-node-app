@@ -5,7 +5,7 @@ const app = express();
 const PORT = 3000;
 
 app.get('/', (req, res) => {
-    res.send('CI/CD Pipeline Working Successfully - version 10');
+    res.send('CI/CD Pipeline Working Successfully - version 11');
 });
 
 app.listen(PORT, () => {
