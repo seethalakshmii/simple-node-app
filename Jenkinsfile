@@ -7,8 +7,18 @@ pipeline {
     }
 
     parameters {
-        string(name: 'GIT_REPO', defaultValue: 'https://github.com/seethalakshmii/simple-node-app.git', description: 'Git repository URL')
-        string(name: 'IMAGE_NAME', defaultValue: 'seetha88/simple-node-app', description: 'Docker image name')
+
+        string(
+            name: 'GIT_REPO',
+            defaultValue: 'https://github.com/seethalakshmii/simple-node-app.git',
+            description: 'Git repository URL'
+        )
+
+        string(
+            name: 'IMAGE_NAME',
+            defaultValue: 'seetha88/simple-node-app',
+            description: 'Docker image name'
+        )
     }
 
     environment {
@@ -20,34 +30,58 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: "${params.GIT_REPO}"
+
+                git branch: 'main',
+                    url: "${params.GIT_REPO}"
             }
         }
 
         stage('Install Dependencies') {
             steps {
+
                 bat 'npm install'
+
                 bat 'npm audit || exit 0'
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+
+                bat 'npm test'
             }
         }
 
         stage('Build Docker Image') {
             steps {
+
                 bat """
                 docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
                 """
             }
         }
 
+        stage('Security Scan') {
+            steps {
+
+                bat """
+                trivy image %IMAGE_NAME%:%IMAGE_TAG%
+                """
+            }
+        }
+
         stage('Push Docker Image') {
             steps {
+
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
+
                     bat """
                     echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+
                     docker push %IMAGE_NAME%:%IMAGE_TAG%
                     """
                 }
@@ -56,6 +90,7 @@ pipeline {
 
         stage('Deploy to Dev') {
             steps {
+
                 bat """
                 kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n dev
 
@@ -69,6 +104,7 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
+
                 bat """
                 kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n staging
 
@@ -82,6 +118,7 @@ pipeline {
 
         stage('Deploy to Prod') {
             steps {
+
                 bat """
                 kubectl set image deployment/simple-node-app simple-node-app=%IMAGE_NAME%:%IMAGE_TAG% -n prod
 
@@ -93,24 +130,19 @@ pipeline {
             }
         }
 
-        stage('Logs (Verification)') {
-            steps {
-                bat """
-                kubectl get pods -n dev
-                kubectl get svc -n dev
-                kubectl logs -l app=simple-node-app -n dev --tail=20
-                """
-            }
-        }
+        stage('Logs Verification') {
 
-        stage('Rollback (Manual Trigger Only)') {
-            when {
-                expression { return false }
-            }
             steps {
+
                 bat """
-                kubectl rollout undo deployment/simple-node-app -n dev
-                kubectl rollout status deployment/simple-node-app -n dev
+                echo ===== POD STATUS =====
+                kubectl get pods -n dev
+
+                echo ===== SERVICES =====
+                kubectl get svc -n dev
+
+                echo ===== APPLICATION LOGS =====
+                kubectl logs -l app=simple-node-app -n dev --tail=20
                 """
             }
         }
@@ -119,14 +151,23 @@ pipeline {
     post {
 
         success {
+
             echo 'CI/CD Pipeline executed successfully'
         }
 
         failure {
-            echo 'Pipeline failed - check logs'
+
+            echo 'Pipeline failed - initiating automatic rollback'
+
+            bat """
+            kubectl rollout undo deployment/simple-node-app -n prod || exit 0
+
+            kubectl rollout status deployment/simple-node-app -n prod
+            """
         }
 
         always {
+
             cleanWs()
         }
     }
