@@ -119,6 +119,8 @@ This project demonstrates a fully automated and scalable CI/CD pipeline with int
 
 ▶ Click below to watch the complete project demonstration.
 
-[Download / View Demo Video](project-assets/video/project-demo.mp4)
+[▶ Watch Demo Video on Google Drive](https://drive.google.com/file/d/1HHSab7Bj8-XspkBzwdGTeuukR2gGSOul/view?usp=sharing)
+
+[▶ View / Download Video from GitHub](project-assets/video/project-demo.mp4)
 
 
