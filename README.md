@@ -60,10 +60,14 @@ This project implements an automated CI/CD pipeline using GitHub, Jenkins, Docke
 - Trigger on push events
 
 ### Kubernetes Setup
-- Create namespaces:
-  kubectl create namespace dev
-  kubectl create namespace staging
-  kubectl create namespace prod
+
+Create namespaces:
+
+```bash
+kubectl create namespace dev
+kubectl create namespace staging
+kubectl create namespace prod
+```
 
 ## Testing
 Unit testing is implemented using Jest.
@@ -78,9 +82,12 @@ Command:
 docker run --rm aquasec/trivy image <image-name>
 
 ## Deployment Validation
+
+```bash
 - kubectl get pods -n dev
 - kubectl get svc -n dev
 - kubectl rollout status deployment/simple-node-app
+```
 
 ## Accessing the Live Application
 To access the running application in Kubernetes (Minikube), use:
@@ -99,3 +106,19 @@ kubectl rollout undo deployment/simple-node-app -n prod
 
 ## Outcome
 This project demonstrates a fully automated and scalable CI/CD pipeline with integrated testing, security scanning, and Kubernetes-based deployment, ensuring reliable and consistent software delivery.
+
+
+# Project Report
+
+📄 Click below to view the complete project documentation.
+
+[View Full Project Report](project-assets/report/SEETHA_REPORT_18_MAY.pdf)
+
+
+# Project Demo Video
+
+▶ Click below to watch the complete project demonstration.
+
+[Watch Demo Video](project-assets/video/project-demo.mp4)
+
+
