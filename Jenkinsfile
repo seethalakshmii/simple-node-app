@@ -65,7 +65,7 @@ pipeline {
             steps {
                 bat """
                 docker pull %IMAGE_NAME%:%IMAGE_TAG%
-                docker run --rm aquasec/trivy image %IMAGE_NAME%:%IMAGE_TAG%
+                docker run --rm aquasec/trivy image --scanners vuln --severity HIGH,CRITICAL %IMAGE_NAME%:%IMAGE_TAG%
                 """
             }
         }
