@@ -65,7 +65,7 @@ pipeline {
             steps {
 
                 bat """
-                trivy image %IMAGE_NAME%:%IMAGE_TAG%
+                docker run --rm aquasec/trivy image %IMAGE_NAME%:%IMAGE_TAG%
                 """
             }
         }
