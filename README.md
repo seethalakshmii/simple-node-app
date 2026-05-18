@@ -91,9 +91,9 @@ docker run --rm aquasec/trivy image <image-name>
 
 ## Accessing the Live Application
 To access the running application in Kubernetes (Minikube), use:
-
+```bash
 minikube service simple-node-app -n dev
-
+```
 
 ## Rollback Strategy
 In case of deployment failure, the previous stable version can be restored using:
@@ -119,6 +119,6 @@ This project demonstrates a fully automated and scalable CI/CD pipeline with int
 
 ▶ Click below to watch the complete project demonstration.
 
-[Watch Demo Video](project-assets/video/project-demo.mp4)
+[Download / View Demo Video](project-assets/video/project-demo.mp4)
 
 
