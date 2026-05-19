@@ -112,7 +112,7 @@ This project demonstrates a fully automated and scalable CI/CD pipeline with int
 
 📄 Click below to view the complete project documentation.
 
-[View Full Project Report](project-assets/report/SEETHA_PROJECT_REPORT_18_MAY)
+[View Full Project Report](project-assets/report/SEETHA_PROJECT_REPORT_18_MAY.pdf)
 
 
 # Project Demo Video
